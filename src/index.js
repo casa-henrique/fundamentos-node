@@ -9,9 +9,16 @@ const customers = [];
 
 app.post("/account", (request, response) => {
   const { cpf, name } = request.body;
-  const id = uuidv4();
 
-  customers.push({ cpf, name, id, statement: [] }); //Inserindo os dados na FakeDB
+  const customerAlredyExists = customers.some(
+    (customer) => customer.cpf === cpf
+  ); //some é um método de busca com retorno booleano
+
+  if (customerAlredyExists) {
+    return response.status(400).json({ error: "Customer already exists" });
+  }
+
+  customers.push({ cpf, name, id: uuidv4(), statement: [] }); //Inserindo os dados na FakeDB
 
   return response.status(201).send();
 });
