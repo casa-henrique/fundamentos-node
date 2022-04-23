@@ -7,32 +7,44 @@ app.use(express.json()); //Receber json
 //FakeDB
 const customers = [];
 
-app.post("/account", (request, response) => {
-  const { cpf, name } = request.body;
+//Middleware
+function verifyIfExistsAcconutCpf(req, res, next) {
+  const { cpf } = req.headers;
+
+  const customer = customers.find((customer) => customer.cpf === cpf); //find retorna um objeto
+
+  if (!customer) {
+    return res.status(400).json({ error: "Customer not found" });
+  }
+
+  request.customer = customer;
+
+  return next();
+}
+
+app.post("/account", (req, res) => {
+  const { cpf, name } = req.body;
 
   const customerAlredyExists = customers.some(
     (customer) => customer.cpf === cpf
   ); //some é um método de busca com retorno booleano
 
   if (customerAlredyExists) {
-    return response.status(400).json({ error: "Customer already exists" });
+    return res.status(400).json({ error: "Customer already exists" });
   }
 
   customers.push({ cpf, name, id: uuidv4(), statement: [] }); //Inserindo os dados na FakeDB
 
-  return response.status(201).send();
+  return res.status(201).send();
 });
 
-app.get("/statement", (request, response) => {
-  const { cpf } = request.headers;
+app.use(verifyIfExistsAcconutCpf);
+//Todas as seguintes rotas vão usar este middleware
 
-  const customer = customers.find((customer) => customer.cpf === cpf); //find retorna um objeto
+app.get("/statement", verifyIfExistsAcconutCpf, (req, res) => {
+  const { customer } = req;
 
-  if (!customer) {
-    return response.status(400).json({ error: "Customer not found" });
-  }
-
-  return response.json(customer.statement);
+  return res.json(customer.statement);
 });
 
 app.listen(3333);
