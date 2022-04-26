@@ -126,4 +126,20 @@ app.get("/account", (req, res) => {
   return res.json(customer);
 });
 
+app.delete("/account", (req, res) => {
+  const { customer } = req;
+
+  customers.splice(customer, 1); //Splice espera dois argumentos, onde ele irá começar a remover e onde termina
+
+  return res.status(200).json(customers);
+});
+
+app.get("/balance", (req, res) => {
+  const { customer } = req;
+
+  const balance = getBalance(customer.statement);
+
+  return res.json(balance);
+});
+
 app.listen(3333);
